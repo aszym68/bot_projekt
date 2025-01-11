@@ -1,17 +1,7 @@
 import requests
 import pandas as pd
 from io import StringIO
-
-corp_symbol = {
-    'Apple': 'AAPL',
-    'Microsoft': 'MSFT',
-    'Amazon': 'AMZN',
-    'Alphabet': 'GOOG',
-    'Tesla': 'TSLA',
-    'Nvidia': 'NVDA',
-    'Meta Platforms': 'META'
-}
-
+from symbols import corp_symbol
 
 def fetch_stock_data(company_name, api_key='HRVCBXNVYPUS72OM', interval='5min'):
     """
