@@ -46,6 +46,24 @@ def plot_stock_prices(symbol, days=90):
     return buf
 
 
+def plot_technical(symbol, days, indicator):
+    match indicator:
+        case "SMA":
+            plotSMA(symbol, days)
+        case "EMA":
+            plotEMA(symbol, days)
+        case "BB":
+            plotBB(symbol, days)
+        case "ADX":
+            plotADX(symbol, days)
+        case "CCI":
+            plotCCI(symbol, days)
+        case "STOCH":
+            plotSTOCH(symbol, days)
+        case "OBV":
+            plotOBV(symbol, days)
+
+
 def plotSMA(symbol, days=90):
     pass
 

@@ -59,26 +59,24 @@ def calculate_indicators(symbol):
         "CCI": "Commodity Channel Index",
         "STOCH": "Stochastic Oscillator",
         "OBV": "On Balance Volume",
+        "RSI": "Relative Strength Index",
+        "MACD": "Moving Average Convergence Divergence",
+        "ATR": "Average True Range",
     }
 
-    results = pd.DataFrame(index=data.index)
-    results["SMA_20"] = talib.SMA(data["Close"], timeperiod=20)
-    results["EMA_20"] = talib.EMA(data["Close"], timeperiod=20)
+    data["SMA_14"] = talib.SMA(data["Close"], timeperiod=14)
+    data["EMA_14"] = talib.EMA(data["Close"], timeperiod=14)
 
     upperband, middleband, lowerband = talib.BBANDS(
-        data["Close"], timeperiod=20, nbdevup=2, nbdevdn=2, matype=0
+        data["Close"], timeperiod=14, nbdevup=2, nbdevdn=2, matype=0
     )
-    results["BB_Upper"] = upperband
-    results["BB_Middle"] = middleband
-    results["BB_Lower"] = lowerband
+    data["BB_Upper"] = upperband
+    data["BB_Middle"] = middleband
+    data["BB_Lower"] = lowerband
 
-    results["ADX_14"] = talib.ADX(
-        data["High"], data["Low"], data["Close"], timeperiod=14
-    )
+    data["ADX_14"] = talib.ADX(data["High"], data["Low"], data["Close"], timeperiod=14)
 
-    results["CCI_14"] = talib.CCI(
-        data["High"], data["Low"], data["Close"], timeperiod=14
-    )
+    data["CCI_14"] = talib.CCI(data["High"], data["Low"], data["Close"], timeperiod=14)
 
     fastk, fastd = talib.STOCH(
         data["High"],
@@ -90,15 +88,21 @@ def calculate_indicators(symbol):
         slowd_period=3,
         slowd_matype=0,
     )
-    results["STOCH_K"] = fastk
-    results["STOCH_D"] = fastd
+    data["STOCH_K"] = fastk
+    data["STOCH_D"] = fastd
 
-    results["OBV"] = talib.OBV(data["Close"], data["Volume"])
+    data["OBV"] = talib.OBV(data["Close"], data["Volume"])
+
+    data["RSI_14"] = talib.RSI(data["Close"], timeperiod=14)
+    data["MACD"], data["MACD_Signal"], data["MACD_Hist"] = talib.MACD(
+        data["Close"], fastperiod=12, slowperiod=26, signalperiod=9
+    )
+    data["ATR_14"] = talib.ATR(data["High"], data["Low"], data["Close"], timeperiod=14)
 
     # fill NaN values with None to ensure compatibility
-    results = results.where(pd.notnull(results), None)
+    data = data.where(pd.notnull(data), None)
 
-    results.to_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}_tech.csv")
+    data.to_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
 
 
 def main():
