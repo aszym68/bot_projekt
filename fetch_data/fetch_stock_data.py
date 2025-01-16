@@ -1,20 +1,22 @@
 import json
 import os
 import talib
-import config as cfg
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from utils import get_repo_path
+from fetch_data import config as cfg
 from datetime import datetime, timedelta
-from symbols import corp_symbol
+from fetch_data import symbols
+from fetch_data import utils
 
 default_timedelta_days = 1825  # 5 lat
 
 
 def download_data(symbol):
-    if os.path.exists(get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON):
-        with open(get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "r") as config_file:
+    if os.path.exists(utils.get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON):
+        with open(
+            utils.get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "r"
+        ) as config_file:
             try:
                 config = json.load(config_file)
                 timedelta_days = config.get("timedelta_days", default_timedelta_days)
@@ -23,7 +25,9 @@ def download_data(symbol):
                 timedelta_days = default_timedelta_days
     else:
         config = {"timedelta_days": default_timedelta_days}
-        with open(get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "w") as config_file:
+        with open(
+            utils.get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "w"
+        ) as config_file:
             json.dump(config, config_file, indent=4)
         timedelta_days = default_timedelta_days
     end_date = datetime.today()
@@ -34,14 +38,17 @@ def download_data(symbol):
         end=end_date.strftime("%Y-%m-%d"),
         multi_level_index=False,
     )
-    finance_data.to_csv(get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
+    finance_data.index = pd.to_datetime(finance_data.index).date
+    finance_data.to_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
     config["last_download"] = end_date.strftime("%Y-%m-%d")
-    with open(get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "w") as config_file:
+    with open(
+        utils.get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "w"
+    ) as config_file:
         json.dump(config, config_file, indent=4)
 
 
 def calculate_indicators(symbol):
-    input_file = get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv"
+    input_file = utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv"
     data = pd.read_csv(input_file)
 
     technical_indicators = {
@@ -91,15 +98,21 @@ def calculate_indicators(symbol):
     # fill NaN values with None to ensure compatibility
     results = results.where(pd.notnull(results), None)
 
-    results.to_csv(get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}_tech.csv")
+    results.to_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}_tech.csv")
 
 
-if __name__ == "__main__":
-    for index, symbol in enumerate(corp_symbol.values()):
-        print(f"Downloading data for {symbol}... ({index+1}/{len(corp_symbol)})")
+def main():
+    for index, symbol in enumerate(symbols.corp_symbol.values()):
+        print(
+            f"Downloading data for {symbol}... ({index+1}/{len(symbols.corp_symbol)})"
+        )
         download_data(symbol)
         print(
-            f"Calculating technical indicators for {symbol}... ({index+1}/{len(corp_symbol)})"
+            f"Calculating technical indicators for {symbol}... ({index+1}/{len(symbols.corp_symbol)})"
         )
         calculate_indicators(symbol)
         print("Done.")
+
+
+if __name__ == "__main__":
+    main()

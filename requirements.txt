@@ -1,5 +1,8 @@
+matplotlib==3.8.0
+matplotlib==3.8.2
 numpy==2.2.1
 pandas==1.5.3
-Requests==2.32.3
+PyQt5==5.15.11
+PyQt5_sip==12.15.0
 ta_lib==0.6.0
 yfinance==0.2.48
