@@ -53,7 +53,7 @@ def plot_technical(symbol, days, indicator):
             return plotSMA(symbol, days)
         case "EMA":
             return plotEMA(symbol, days)
-        case "BB":
+        case "BBANDS":
             return plotBB(symbol, days)
         case "ADX":
             return plotADX(symbol, days)
@@ -83,6 +83,19 @@ def plotSMA(symbol, days=90):
     df = pd.read_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
     df.rename(columns={"Unnamed: 0": "Date"}, inplace=True)
     df = df.tail(days)
+    plt.figure(figsize=(13, 8))
+    plt.plot(df["Date"], df["SMA_14"], label="Simple Moving Average (SMA)", color="red")
+    plt.xticks(df["Date"][::N], rotation=70)
+    plt.xlabel("Date")
+    plt.ylabel("SMA Value")
+    plt.title(f"{symbol}, Simple Moving Average (14 days)")
+    plt.legend()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plt.close()
+    return buf
 
 
 def plotEMA(symbol, days=90):
@@ -95,6 +108,19 @@ def plotEMA(symbol, days=90):
     df = pd.read_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
     df.rename(columns={"Unnamed: 0": "Date"}, inplace=True)
     df = df.tail(days)
+    plt.figure(figsize=(13, 8))
+    plt.plot(df["Date"], df["EMA_14"], label="Exponential Moving Average (SMA)")
+    plt.xticks(df["Date"][::N], rotation=70)
+    plt.xlabel("Date")
+    plt.ylabel("EMA Value")
+    plt.title(f"{symbol}, Exponential Moving Average (14 days)")
+    plt.legend()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plt.close()
+    return buf
 
 
 def plotBB(symbol, days=90):
@@ -107,6 +133,31 @@ def plotBB(symbol, days=90):
     df = pd.read_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
     df.rename(columns={"Unnamed: 0": "Date"}, inplace=True)
     df = df.tail(days)
+    plt.figure(figsize=(13, 8))
+    plt.plot(df["Date"], df["BB_Lower"], label="Lower Band", color="blue")
+    plt.plot(df["Date"], df["BB_Upper"], label="Upper Band", color="orange")
+    plt.plot(
+        df["Date"], df["SMA_14"], "--", label="Simple Moving Average (SMA)", color="red"
+    )
+    plt.fill_between(
+        df["Date"],
+        df["BB_Lower"],
+        df["BB_Upper"],
+        where=(df["BB_Lower"] <= df["BB_Upper"]),
+        color="lightcoral",
+    )
+
+    plt.legend()
+    plt.title(f"{symbol}, Bollinger Bands (14 days)")
+    plt.xticks(df["Date"][::N], rotation=70)
+    plt.xlabel("Date")
+    plt.ylabel("SMA Value")
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plt.close()
+    return buf
 
 
 def plotADX(symbol, days=90):
@@ -119,6 +170,24 @@ def plotADX(symbol, days=90):
     df = pd.read_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
     df.rename(columns={"Unnamed: 0": "Date"}, inplace=True)
     df = df.tail(days)
+    plt.figure(figsize=(13, 8))
+    plt.plot(
+        df["Date"],
+        df["ADX_14"],
+        label="Average Directional Movement Index (ADX)",
+        color="red",
+    )
+    plt.xticks(df["Date"][::N], rotation=70)
+    plt.xlabel("Date")
+    plt.ylabel("ADX Value")
+    plt.title(f"{symbol}, Average Directional Movement Index (14 days)")
+    plt.legend()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plt.close()
+    return buf
 
 
 def plotCCI(symbol, days=90):
@@ -131,6 +200,24 @@ def plotCCI(symbol, days=90):
     df = pd.read_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
     df.rename(columns={"Unnamed: 0": "Date"}, inplace=True)
     df = df.tail(days)
+    plt.figure(figsize=(13, 8))
+    plt.plot(
+        df["Date"],
+        df["CCI_14"],
+        label="Commodity Channel Index (CCI)",
+        color="red",
+    )
+    plt.xticks(df["Date"][::N], rotation=70)
+    plt.xlabel("Date")
+    plt.ylabel("CCI Value")
+    plt.title(f"{symbol}, Commodity Channel Index (14 days)")
+    plt.legend()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plt.close()
+    return buf
 
 
 def plotSTOCH(symbol, days=90):
@@ -143,6 +230,30 @@ def plotSTOCH(symbol, days=90):
     df = pd.read_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
     df.rename(columns={"Unnamed: 0": "Date"}, inplace=True)
     df = df.tail(days)
+    plt.figure(figsize=(13, 8))
+    plt.plot(
+        df["Date"],
+        df["STOCH_K"],
+        label="Stochastic %K",
+        color="red",
+    )
+    plt.plot(
+        df["Date"],
+        df["STOCH_D"],
+        label="Stochastic %D",
+        color="blue",
+    )
+    plt.xticks(df["Date"][::N], rotation=70)
+    plt.xlabel("Date")
+    plt.ylabel("CCI Value")
+    plt.title(f"{symbol}, Stochastic Oscillator (14 days)")
+    plt.legend()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plt.close()
+    return buf
 
 
 def plotOBV(symbol, days=90):
@@ -155,7 +266,7 @@ def plotOBV(symbol, days=90):
     df = pd.read_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
     df.rename(columns={"Unnamed: 0": "Date"}, inplace=True)
     df = df.tail(days)
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(13, 8))
     plt.plot(df["Date"], df["OBV"], label="On-Balance Volume (OBV)", color="purple")
     plt.xticks(df["Date"][::N], rotation=70)
     plt.xlabel("Date")
