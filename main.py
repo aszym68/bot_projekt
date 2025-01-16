@@ -61,8 +61,6 @@ class Advisor(QWidget):
         self.calculate_button = QPushButton("Calculate")
         self.add_button = QPushButton("Add another!")
 
-        self.calculate_button.clicked.connect(self.show_graph)
-
         buttons_layout.addWidget(self.calculate_button)
         buttons_layout.addWidget(self.add_button)
 
@@ -72,37 +70,72 @@ class Advisor(QWidget):
         self.tab_b = QWidget()
         self.tab_c = QWidget()
 
-        # Set up individual tabs
         self.tabs.addTab(self.tab_a, "Show historic prices")
         self.tabs.addTab(self.tab_b, "Technical indicators")
         self.tabs.addTab(self.tab_c, "Tab C")
-
-        # Tab content example
+        # TAB A
         tab_a_layout = QVBoxLayout()
+        self.plot_days_a = QSpinBox(self)
+        self.plot_days_a.setRange(30, 1825)
+        self.plot_days_a.setPrefix("Days: ")
 
-        self.graph_label = QLabel(self)
-        self.graph_label.setAlignment(Qt.AlignCenter)
+        self.plot_button_a = QPushButton("Show")
+        self.plot_button_a.clicked.connect(self.graph_stocks)
+        self.graph_label_a = QLabel(self)
+        self.graph_label_a.setAlignment(Qt.AlignCenter)
 
-        tab_a_layout.addWidget(self.graph_label)
+        tab_a_layout.addWidget(self.graph_label_a)
+        tab_a_layout.addWidget(self.plot_days_a)
+        tab_a_layout.addWidget(self.plot_button_a)
 
         self.tab_a.setLayout(tab_a_layout)
+
+        # TAB B
+        tab_b_layout = QVBoxLayout()
+        self.indicator_selector = QComboBox(self)
+        self.indicator_selector.addItems(self.get_tech_indicators())
+        self.plot_days_b = QSpinBox(self)
+        self.plot_days_b.setRange(30, 1810)
+        self.plot_days_b.setPrefix("Days: ")
+        self.plot_button_b = QPushButton("Show")
+        self.plot_button_b.clicked.connect(self.graph_technical)
+        self.graph_label_b = QLabel(self)
+        self.graph_label_b.setAlignment(Qt.AlignCenter)
+
+        tab_b_layout.addWidget(self.graph_label_b)
+        tab_b_layout.addWidget(self.indicator_selector)
+        tab_b_layout.addWidget(self.plot_days_b)
+        tab_b_layout.addWidget(self.plot_button_b)
 
         main_layout.addLayout(input_layout)
         main_layout.addLayout(buttons_layout)
         main_layout.addWidget(self.tabs)
 
+        self.tab_b.setLayout(tab_b_layout)
+
         self.setLayout(main_layout)
 
-    def show_graph(self):
+    def graph_stocks(self):
         symbol = self.index_selector.currentText()
-        days = self.days_input.value()
+        days = self.plot_days_a.value()
         buf = plots.plot_stock_prices(symbol, days)
         pixmap = QPixmap()
         pixmap.loadFromData(buf.read())
-        self.graph_label.setPixmap(pixmap)
+        self.graph_label_a.setPixmap(pixmap)
+
+    def graph_technical(self):
+        symbol = self.index_selector.currentText()
+        days = self.plot_days_b.value()
+        buf = plots.plot_technical(symbol, days, self.indicator_selector.currentText())
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf.read())
+        self.graph_label_b.setPixmap(pixmap)
 
     def get_companies(self):
         return list(sym.corp_symbol.values())
+
+    def get_tech_indicators(self):
+        return list(sym.technical_indicators.keys())
 
 
 def main():

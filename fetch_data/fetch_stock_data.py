@@ -51,19 +51,6 @@ def calculate_indicators(symbol):
     input_file = utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv"
     data = pd.read_csv(input_file)
 
-    technical_indicators = {
-        "SMA": "Simple Moving Average",
-        "EMA": "Exponential Moving Average",
-        "BBANDS": "Bollinger Bands",
-        "ADX": "Average Directional Movement Index",
-        "CCI": "Commodity Channel Index",
-        "STOCH": "Stochastic Oscillator",
-        "OBV": "On Balance Volume",
-        "RSI": "Relative Strength Index",
-        "MACD": "Moving Average Convergence Divergence",
-        "ATR": "Average True Range",
-    }
-
     data["SMA_14"] = talib.SMA(data["Close"], timeperiod=14)
     data["EMA_14"] = talib.EMA(data["Close"], timeperiod=14)
 
