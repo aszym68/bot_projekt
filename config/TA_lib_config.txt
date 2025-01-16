@@ -1,0 +1,17 @@
+W celu pobrania biblioteki TA-Lib musimy najpierw wejść na stronę:
+
+https://github.com/ta-lib/ta-lib/releases/download/v0.6.4/ta-lib-0.6.4-windows-x86_64.msi
+
+I zainstalować aplikację
+
+Następnie musimy pobrać wersję odpowiednią dla naszej wersji pythona oraz procesora z poniższego linku:
+
+https://github.com/cgohlke/talib-build/releases
+
+Na koniec w konsoli bedąc w programie gdzie zapisaliśmy pobrany release musimy wpisać:
+
+py.exe -3.12 -m pip install ta_lib-0.6.0-cp312-cp312-win_amd64.whl
+
+ISTOTNE BY "-3.12" było zgodnę z naszą wersją pythona oraz po "pip install" skopiować nazwę naszego pliku
+
+Po instalacji powinniśmy być w stanie odpalic plik fetch_stock_data.py by pobrały się dane do folderu data w formie pliku CSV
