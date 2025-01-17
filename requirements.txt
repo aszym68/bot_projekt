@@ -6,3 +6,5 @@ PyQt5==5.15.11
 PyQt5_sip==12.15.0
 ta_lib==0.6.0
 yfinance==0.2.48
+sklearn
+xgboost==2.1.3
