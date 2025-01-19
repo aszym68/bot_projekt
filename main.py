@@ -24,6 +24,7 @@ from fetch_data import symbols as sym
 from fetch_data import config as cfg
 from fetch_data import utils
 from plots import plots
+from models.model import StockModel
 
 
 class Advisor(QWidget):
@@ -60,6 +61,8 @@ class Advisor(QWidget):
 
         self.calculate_button = QPushButton("Calculate")
         self.add_button = QPushButton("Add another!")
+
+        self.calculate_button.clicked.connect(self.calculate_advice)
 
         buttons_layout.addWidget(self.calculate_button)
         buttons_layout.addWidget(self.add_button)
@@ -136,6 +139,26 @@ class Advisor(QWidget):
 
     def get_tech_indicators(self):
         return list(sym.technical_indicators.keys())
+
+    def calculate_advice(self):
+        capital = self.capital_input.text()
+        if not capital.isdigit():
+            mb.showwarning("Invalid Input", "Please enter a valid number for capital.")
+            return
+
+        symbol = self.index_selector.currentText()
+
+        model = StockModel(symbol)
+        try:
+            model.load_data()
+            model.prepare_data()
+            model.load_trained_model()
+
+            advice = model.recommend_action()
+
+            mb.showinfo("Investment Advice", f"Recommendation for {symbol}: {advice}")
+        except Exception as e:
+            mb.showwarning("Error", f"Could not calculate advice: {e}")
 
 
 def main():

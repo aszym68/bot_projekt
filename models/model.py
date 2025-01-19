@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -96,6 +96,31 @@ class StockModel:
         model_path = self.repo_path / output_path / f"{self.symbol}_LSTM_model.h5"
         self.model.save(model_path)
         print(f"LSTM model saved in {model_path}")
+
+    def recommend_action(self):
+        if self.model is None:
+            raise ValueError("The model is not loaded")
+
+        predictions = self.model.predict(self.X_test)
+        predictions = self.scaler.inverse_transform(predictions)
+        y_test_rescaled = self.scaler.inverse_transform(self.y_test.reshape(-1, 1))
+
+        last_price = y_test_rescaled[-1][0]
+        predicted_price = predictions[-1][0]
+        change_percentage = (predicted_price - last_price) / last_price * 100
+
+        if change_percentage > 2:
+            return "Buy"
+        elif change_percentage < -2:
+            return "Sell"
+        else:
+            return "Hold"
+
+    def load_trained_model(self):
+        model_path = self.repo_path / cfg.MODELS_PATH / f"{self.symbol}_LSTM_model.h5"
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model {self.symbol} not found.")
+        self.model = load_model(model_path)
 
 
 def main():
