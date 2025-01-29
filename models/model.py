@@ -99,7 +99,8 @@ class StockModel:
         self.model.save(model_path)
         print(f"LSTM model saved in {model_path}")
 
-    def recommend_action(self):
+
+    def recommend_action(self, lookback=5):
         if self.model is None:
             raise ValueError("The model is not loaded")
 
@@ -107,9 +108,12 @@ class StockModel:
         predictions = self.scaler.inverse_transform(predictions)
         y_test_rescaled = self.scaler.inverse_transform(self.y_test.reshape(-1, 1))
 
-        last_price = y_test_rescaled[-1][0]
-        predicted_price = predictions[-1][0]
-        change_percentage = (predicted_price - last_price) / last_price * 100
+        last_prices = y_test_rescaled[-lookback:].flatten()
+        predicted_prices = predictions[-lookback:].flatten()
+
+        avg_actual = np.mean(last_prices)
+        avg_predicted = np.mean(predicted_prices)
+        change_percentage = (avg_predicted - avg_actual) / avg_actual * 100
 
         if change_percentage > 2:
             return "Buy"

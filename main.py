@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QComboBox,
     QSpinBox,
+    QMessageBox,
 )
 from PyQt5.QtGui import QPixmap
 from fetch_data import fetch_stock_data as download
@@ -146,6 +147,7 @@ class Advisor(QWidget):
             mb.showwarning("Invalid Input", "Please enter a valid number for capital.")
             return
 
+        capital = float(capital)
         symbol = self.index_selector.currentText()
 
         model = StockModel(symbol)
@@ -156,7 +158,15 @@ class Advisor(QWidget):
 
             advice = model.recommend_action()
 
-            mb.showinfo("Investment Advice", f"Recommendation for {symbol}: {advice}")
+            last_price = model.data["Close"].iloc[-1]
+            predicted_price = model.scaler.inverse_transform(model.model.predict(model.X_test))[-1][0]
+            potential_profit = capital * (predicted_price / last_price - 1)
+
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Investment Advice")
+            msg.setText(f"Recommendation for {symbol}: {advice}\nPotential profit: {potential_profit:.2f} USD")
+            msg.setIcon(QMessageBox.Information)
+            msg.show()  # Nie blokuje GUI!
         except Exception as e:
             mb.showwarning("Error", f"Could not calculate advice: {e}")
 
