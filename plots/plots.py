@@ -1,7 +1,3 @@
-# TO DO:
-# graph technical indicators (each one should have its own function!)
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -9,6 +5,7 @@ import io
 from fetch_data import config as cfg
 from fetch_data import symbols
 from fetch_data import utils
+from datetime import timedelta
 
 
 def plot_stock_prices(symbol, days=90):
@@ -359,4 +356,69 @@ def plotATR(symbol, days=90):
     plt.savefig(buf, format="png")
     buf.seek(0)
     plt.close()
+    return buf
+
+
+def plot_predicted(symbol, predictions, prediction_days, prev_days=90):
+    days = prediction_days + prev_days
+    if days <= 30:
+        N = 5
+    elif days <= 60:
+        N = 10
+    else:
+        N = 15
+    if prediction_days > len(predictions):
+        prediction_days = len(predictions)  # failsafe
+    predictions = predictions[:prediction_days]
+    main_df = pd.read_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
+    main_df.rename(columns={"Unnamed: 0": "Date"}, inplace=True)
+
+    main_df["Date"] = pd.to_datetime(main_df["Date"])
+    last_date = main_df["Date"].iloc[-1]
+    future_dates = [
+        last_date + timedelta(days=i) for i in range(1, prediction_days + 1)
+    ]
+    print(len(predictions))
+    print(len(future_dates))
+    predictions_df = pd.DataFrame(
+        {
+            "Date": future_dates,
+            "Close": predictions,
+            "High": np.nan,
+            "Low": np.nan,
+            "Open": np.nan,
+        }
+    )
+    colors = {
+        "Close": "#8000ff",
+        "High": "#00ff00",
+        "Low": "#ff0000",
+        "Open": "#ff00ff",
+    }
+    fig = plt.figure(figsize=(13, 8))
+    ax = plt.subplot()
+
+    for val in ["Close", "High", "Low", "Open"]:
+        df = main_df.tail(days)[["Date", val]]
+        ax.plot(df["Date"], df[val], "-o", markersize=0.5, color=colors[val], label=val)
+
+    ax.plot(
+        predictions_df["Date"],
+        predictions_df["Close"],
+        linestyle="--",
+        color=colors["Close"],
+        label="Predicted Close",
+    )
+    combined_df = pd.concat([main_df, predictions_df], ignore_index=True)
+    plt.xticks(combined_df.tail(days)["Date"][::N], rotation=70)
+    ax.legend()
+    ax.set_title(symbol)
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Price (USD)")
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plt.close()
+
     return buf

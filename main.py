@@ -34,6 +34,13 @@ class Advisor(QWidget):
         self.initUI()
 
     def initUI(self):
+        self.already_calculated = {}
+        self.predicted_prices = {}
+        for symbol in self.get_companies():
+            self.already_calculated[symbol] = (
+                False  # this will help us keep track of what has been already calculated so then we can block the user from potentially trying to plot uncalculated data
+            )
+            self.predicted_prices[symbol] = None  # for storing the predictions
         self.setWindowTitle("Trade Advisor")
         self.setGeometry(100, 100, 600, 400)
 
@@ -48,6 +55,7 @@ class Advisor(QWidget):
 
         self.index_selector = QComboBox(self)
         self.index_selector.addItems(self.get_companies())
+        self.index_selector.currentIndexChanged.connect(self.update_button_state)
 
         self.days_input = QSpinBox(self)
         self.days_input.setRange(20, 365)
@@ -57,16 +65,13 @@ class Advisor(QWidget):
         input_layout.addWidget(self.index_selector)
         input_layout.addWidget(self.days_input)
 
-        # Buttons Layout
         buttons_layout = QHBoxLayout()
 
         self.calculate_button = QPushButton("Calculate")
-        self.add_button = QPushButton("Add another!")
 
         self.calculate_button.clicked.connect(self.calculate_advice)
 
         buttons_layout.addWidget(self.calculate_button)
-        buttons_layout.addWidget(self.add_button)
 
         # Tabs
         self.tabs = QTabWidget()
@@ -74,9 +79,9 @@ class Advisor(QWidget):
         self.tab_b = QWidget()
         self.tab_c = QWidget()
 
-        self.tabs.addTab(self.tab_a, "Show historic prices")
+        self.tabs.addTab(self.tab_a, "Historic prices")
         self.tabs.addTab(self.tab_b, "Technical indicators")
-        self.tabs.addTab(self.tab_c, "Tab C")
+        self.tabs.addTab(self.tab_c, "Predictions")
         # TAB A
         tab_a_layout = QVBoxLayout()
         self.plot_days_a = QSpinBox(self)
@@ -111,11 +116,28 @@ class Advisor(QWidget):
         tab_b_layout.addWidget(self.plot_days_b)
         tab_b_layout.addWidget(self.plot_button_b)
 
+        self.tab_b.setLayout(tab_b_layout)
+
+        # TAB C
+        tab_c_layout = QVBoxLayout()
+        self.plot_days_c = QSpinBox(self)
+        self.plot_days_c.setRange(30, 1810)
+        self.plot_days_c.setPrefix("Previous days: ")
+        self.plot_button_c = QPushButton("Show")
+        self.update_button_state()
+        self.plot_button_c.clicked.connect(self.graph_predictions)
+        self.graph_label_c = QLabel(self)
+        self.graph_label_c.setAlignment(Qt.AlignCenter)
+
+        tab_c_layout.addWidget(self.graph_label_c)
+        tab_c_layout.addWidget(self.plot_days_c)
+        tab_c_layout.addWidget(self.plot_button_c)
+
+        self.tab_c.setLayout(tab_c_layout)
+
         main_layout.addLayout(input_layout)
         main_layout.addLayout(buttons_layout)
         main_layout.addWidget(self.tabs)
-
-        self.tab_b.setLayout(tab_b_layout)
 
         self.setLayout(main_layout)
 
@@ -134,6 +156,17 @@ class Advisor(QWidget):
         pixmap = QPixmap()
         pixmap.loadFromData(buf.read())
         self.graph_label_b.setPixmap(pixmap)
+
+    def graph_predictions(self):
+        symbol = self.index_selector.currentText()
+        days = self.days_input.value()
+        predictions = self.predicted_prices[symbol]
+        buf = plots.plot_predicted(
+            symbol, predictions, days, prev_days=self.plot_days_c.value()
+        )
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf.read())
+        self.graph_label_c.setPixmap(pixmap)
 
     def get_companies(self):
         return list(sym.corp_symbol.values())
@@ -156,40 +189,58 @@ class Advisor(QWidget):
             model.prepare_data()
             model.load_trained_model()
 
-            advice = model.recommend_action()
-
+            predicted_prices, advice = model.recommend_action()
+            predictions = [
+                predicted_prices[i][0] for i in range(len(predicted_prices) - 1)
+            ]
+            print(predictions)
             last_price = model.data["Close"].iloc[-1]
-            predicted_price = model.scaler.inverse_transform(model.model.predict(model.X_test))[-1][0]
-            potential_profit = capital * (predicted_price / last_price - 1)
+            potential_profit = capital * (predictions[-1] / last_price - 1)
 
             msg = QMessageBox(self)
             msg.setWindowTitle("Investment Advice")
-            msg.setText(f"Recommendation for {symbol}: {advice}\nPotential profit: {potential_profit:.2f} USD")
+            msg.setText(
+                f"Recommendation for {symbol}: {advice}\nPotential profit: {potential_profit:.2f} USD"
+            )
+            self.already_calculated[symbol] = True
+            self.update_button_state()
+            self.predicted_prices[symbol] = predictions
             msg.setIcon(QMessageBox.Information)
             msg.show()  # Nie blokuje GUI!
         except Exception as e:
             mb.showwarning("Error", f"Could not calculate advice: {e}")
 
+    def update_button_state(self):
+        current_item = self.index_selector.currentText()
+        self.plot_button_c.setEnabled(self.already_calculated[current_item])
+        if not self.already_calculated[current_item]:
+            self.plot_button_c.setToolTip(
+                "First use the calculate button to calculate the predictions."
+            )
+        else:
+            self.plot_button_c.setToolTip(None)
+
 
 def main():
-    with open(
-        utils.get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "r"
-    ) as config_file:
-        try:
-            config = json.load(config_file)
-            update_date = config.get("last_download")
-        except json.JSONDecodeError:
-            print("Error reading config.json, cannot read last update date.")
-            update_date = "unknown"
-    res = mb.askquestion(
-        "Redownload data",
-        f"Do you want to update the index with current data? Last update date: {update_date}",
-    )
-    if res == "yes":
-        download.main()
-        gui()
-    else:
-        gui()
+    # with open(
+    #     utils.get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "r"
+    # ) as config_file:
+    #     try:
+    #         config = json.load(config_file)
+    #         update_date = config.get("last_download")
+    #     except json.JSONDecodeError:
+    #         print("Error reading config.json, cannot read last update date.")
+    #         update_date = "unknown"
+    # res = mb.askquestion(
+    #     "Redownload data",
+    #     f"Do you want to update the index with current data? Last update date: {update_date}",
+    # )
+    # if res == "yes":
+    #     download.main()
+    #     gui()
+    # else:
+    #     gui()
+    gui()
 
 
 def gui():

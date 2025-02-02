@@ -3,7 +3,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import os
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
@@ -32,8 +33,9 @@ class StockModel:
         data_tech = pd.read_csv(tech_file)
 
         self.data = pd.concat([data_stock, data_tech], axis=1)
-        self.data = self.data.iloc[::-1]
-        self.data['Change'] = (self.data['Close'] - self.data['Open']) / self.data['Open']
+        self.data["Change"] = (self.data["Close"] - self.data["Open"]) / self.data[
+            "Open"
+        ]
 
         numeric_cols = self.data.select_dtypes(include=[np.number]).columns
         numeric_cols = [col for col in numeric_cols if not col.startswith("Unnamed")]
@@ -42,11 +44,11 @@ class StockModel:
         self.data = self.data[numeric_cols]
 
     def prepare_data(self, sequence_length=30):
-        scaled_data = self.scaler.fit_transform(self.data[['Close']].values)
+        scaled_data = self.scaler.fit_transform(self.data[["Close"]].values)
 
         X, y = [], []
         for i in range(sequence_length, len(scaled_data)):
-            X.append(scaled_data[i-sequence_length:i, 0])
+            X.append(scaled_data[i - sequence_length : i, 0])
             y.append(scaled_data[i, 0])
 
         X, y = np.array(X), np.array(y)
@@ -54,26 +56,38 @@ class StockModel:
             X, y, test_size=0.2, shuffle=False
         )
 
-        self.X_train = np.reshape(self.X_train, (self.X_train.shape[0], self.X_train.shape[1], 1))
-        self.X_test = np.reshape(self.X_test, (self.X_test.shape[0], self.X_test.shape[1], 1))
+        self.X_train = np.reshape(
+            self.X_train, (self.X_train.shape[0], self.X_train.shape[1], 1)
+        )
+        self.X_test = np.reshape(
+            self.X_test, (self.X_test.shape[0], self.X_test.shape[1], 1)
+        )
 
     def build_model(self):
 
         optimizer = Adam(learning_rate=0.001)
 
-        self.model = Sequential([
-            LSTM(units=128, return_sequences=True, input_shape=(self.X_train.shape[1], 1)),
-            Dropout(0.2),
-            LSTM(units=128, return_sequences=False),
-            Dropout(0.2),
-            Dense(units=25),
-            Dense(units=1)
-        ])
-        self.model.compile(optimizer=optimizer, loss='mean_squared_error')
+        self.model = Sequential(
+            [
+                LSTM(
+                    units=128,
+                    return_sequences=True,
+                    input_shape=(self.X_train.shape[1], 1),
+                ),
+                Dropout(0.2),
+                LSTM(units=128, return_sequences=False),
+                Dropout(0.2),
+                Dense(units=25),
+                Dense(units=1),
+            ]
+        )
+        self.model.compile(optimizer=optimizer, loss="mean_squared_error")
 
     def train(self, epochs=20, batch_size=16):
         if self.X_train is None or self.y_train is None:
-            raise ValueError("The training data has not been prepared. Run `prepare_data()`.")
+            raise ValueError(
+                "The training data has not been prepared. Run `prepare_data()`."
+            )
 
         if self.model is None:
             raise ValueError("The model has not been built. Run `build_model()`.")
@@ -99,13 +113,13 @@ class StockModel:
         self.model.save(model_path)
         print(f"LSTM model saved in {model_path}")
 
-
     def recommend_action(self, lookback=5):
         if self.model is None:
             raise ValueError("The model is not loaded")
 
         predictions = self.model.predict(self.X_test)
-        predictions = self.scaler.inverse_transform(predictions)
+
+        predictions = self.scaler.inverse_transform(predictions.reshape(-1, 1))
         y_test_rescaled = self.scaler.inverse_transform(self.y_test.reshape(-1, 1))
 
         last_prices = y_test_rescaled[-lookback:].flatten()
@@ -116,11 +130,11 @@ class StockModel:
         change_percentage = (avg_predicted - avg_actual) / avg_actual * 100
 
         if change_percentage > 2:
-            return "Buy"
+            return predictions, "Buy"
         elif change_percentage < -2:
-            return "Sell"
+            return predictions, "Sell"
         else:
-            return "Hold"
+            return predictions, "Hold"
 
     def load_trained_model(self):
         model_path = self.repo_path / cfg.MODELS_PATH / f"{self.symbol}_LSTM_model.h5"
@@ -145,7 +159,8 @@ def main():
             results = model.evaluate()
 
             print(
-                f"{symbol} (LSTM): MSE = {results['MSE']:.4f}, MAE = {results['MAE']:.4f}, R2 = {results['R2']:.4f}")
+                f"{symbol} (LSTM): MSE = {results['MSE']:.4f}, MAE = {results['MAE']:.4f}, R2 = {results['R2']:.4f}"
+            )
 
             all_results.append({"Symbol": symbol, "Model": "LSTM", **results})
 
@@ -153,7 +168,9 @@ def main():
 
         except Exception as e:
             print(f"Error processing {symbol}: {e}")
-            all_results.append({"Symbol": symbol, "Model": None, "MSE": None, "MAE": None, "R2": None})
+            all_results.append(
+                {"Symbol": symbol, "Model": None, "MSE": None, "MAE": None, "R2": None}
+            )
 
     results_df = pd.DataFrame(all_results)
     results_path = model.repo_path / cfg.MODELS_PATH / "results_lstm.csv"
@@ -163,4 +180,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
