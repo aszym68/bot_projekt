@@ -1,0 +1,25 @@
+stages:
+  train:
+    cmd: python -m models.model
+    deps:
+      - data/^GSPC_tech.csv
+      - data/^GSPC.csv
+      - data/AAPL_tech.csv
+      - data/AAPL.csv
+      - data/AMZN_tech.csv
+      - data/AMZN.csv
+      - data/GOOG_tech.csv
+      - data/GOOG.csv
+      - data/MSFT_tech.csv
+      - data/MSFT.csv
+      - data/META_tech.csv
+      - data/META.csv
+
+    outs:
+      - models/^GSPC_LSTM_model.h5
+      - models/AAPL_LSTM_model.h5
+      - models/AMZN_LSTM_model.h5
+      - models/META_LSTM_model.h5
+      - models/MSFT_LSTM_model.h5
+      - models/GOOG_LSTM_model.h5
+      - models/results_lstm.csv

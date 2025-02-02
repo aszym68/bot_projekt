@@ -1,0 +1,5 @@
+outs:
+- md5: 8347a98eacc812be99a9abc49827ca1f
+  size: 345389
+  hash: md5
+  path: AAPL_tech.csv

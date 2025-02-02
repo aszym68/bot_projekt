@@ -1,0 +1,5 @@
+outs:
+- md5: 2918367c50f939ed08c9858748b8c0f6
+  size: 345919
+  hash: md5
+  path: AMZN_tech.csv

@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import (
     QSpinBox,
     QMessageBox,
 )
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QIcon
 from fetch_data import fetch_stock_data as download
 from fetch_data import symbols as sym
 from fetch_data import config as cfg
@@ -43,7 +43,9 @@ class Advisor(QWidget):
             self.predicted_prices[symbol] = None  # for storing the predictions
         self.setWindowTitle("Trade Advisor")
         self.setGeometry(100, 100, 600, 400)
-
+        self.setWindowIcon(
+            QIcon(str(utils.get_repo_path() / cfg.ICON_PATH / cfg.ICON_FILE))
+        )
         # Main Layout
         main_layout = QVBoxLayout()
 

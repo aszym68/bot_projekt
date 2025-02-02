@@ -1,0 +1,5 @@
+outs:
+- md5: 7fdfbf401ecf15ce409d6bb073516385
+  size: 342541
+  hash: md5
+  path: ^GSPC_tech.csv

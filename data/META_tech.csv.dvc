@@ -1,0 +1,5 @@
+outs:
+- md5: a131108cb85135d6fee18b08c54e727f
+  size: 341909
+  hash: md5
+  path: META_tech.csv
