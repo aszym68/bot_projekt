@@ -50,20 +50,26 @@ def download_data(symbol):
 def calculate_indicators(symbol):
     input_file = utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv"
     data = pd.read_csv(input_file)
+    technical = pd.DataFrame()
 
-    data["SMA_14"] = talib.SMA(data["Close"], timeperiod=14)
-    data["EMA_14"] = talib.EMA(data["Close"], timeperiod=14)
+    # Calculate indicators and add to both `data` and `technical`
+    technical["SMA_14"] = data["SMA_14"] = talib.SMA(data["Close"], timeperiod=14)
+    technical["EMA_14"] = data["EMA_14"] = talib.EMA(data["Close"], timeperiod=14)
 
     upperband, middleband, lowerband = talib.BBANDS(
         data["Close"], timeperiod=14, nbdevup=2, nbdevdn=2, matype=0
     )
-    data["BB_Upper"] = upperband
-    data["BB_Middle"] = middleband
-    data["BB_Lower"] = lowerband
+    technical["BB_Upper"] = data["BB_Upper"] = upperband
+    technical["BB_Middle"] = data["BB_Middle"] = middleband
+    technical["BB_Lower"] = data["BB_Lower"] = lowerband
 
-    data["ADX_14"] = talib.ADX(data["High"], data["Low"], data["Close"], timeperiod=14)
+    technical["ADX_14"] = data["ADX_14"] = talib.ADX(
+        data["High"], data["Low"], data["Close"], timeperiod=14
+    )
 
-    data["CCI_14"] = talib.CCI(data["High"], data["Low"], data["Close"], timeperiod=14)
+    technical["CCI_14"] = data["CCI_14"] = talib.CCI(
+        data["High"], data["Low"], data["Close"], timeperiod=14
+    )
 
     fastk, fastd = talib.STOCH(
         data["High"],
@@ -75,21 +81,31 @@ def calculate_indicators(symbol):
         slowd_period=3,
         slowd_matype=0,
     )
-    data["STOCH_K"] = fastk
-    data["STOCH_D"] = fastd
+    technical["STOCH_K"] = data["STOCH_K"] = fastk
+    technical["STOCH_D"] = data["STOCH_D"] = fastd
 
-    data["OBV"] = talib.OBV(data["Close"], data["Volume"])
+    technical["OBV"] = data["OBV"] = talib.OBV(data["Close"], data["Volume"])
 
-    data["RSI_14"] = talib.RSI(data["Close"], timeperiod=14)
-    data["MACD"], data["MACD_Signal"], data["MACD_Hist"] = talib.MACD(
+    technical["RSI_14"] = data["RSI_14"] = talib.RSI(data["Close"], timeperiod=14)
+    macd, macd_signal, macd_hist = talib.MACD(
         data["Close"], fastperiod=12, slowperiod=26, signalperiod=9
     )
-    data["ATR_14"] = talib.ATR(data["High"], data["Low"], data["Close"], timeperiod=14)
+    technical["MACD"] = data["MACD"] = macd
+    technical["MACD_Signal"] = data["MACD_Signal"] = macd_signal
+    technical["MACD_Hist"] = data["MACD_Hist"] = macd_hist
 
-    # fill NaN values with None to ensure compatibility
+    technical["ATR_14"] = data["ATR_14"] = talib.ATR(
+        data["High"], data["Low"], data["Close"], timeperiod=14
+    )
+
+    # Fill NaN values with None to ensure compatibility
     data = data.where(pd.notnull(data), None)
+    technical = technical.where(pd.notnull(technical), None)
 
     data.to_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}.csv")
+    technical.to_csv(utils.get_repo_path() / cfg.OUTPUT_PATH / f"{symbol}_tech.csv")
+
+    return data, technical
 
 
 def main():
