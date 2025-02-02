@@ -1,0 +1,82 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python -m models.model
+    deps:
+    - path: data/AAPL.csv
+      hash: md5
+      md5: 7736121fc3311778cb451d5ae377aff0
+      size: 483086
+    - path: data/AAPL_tech.csv
+      hash: md5
+      md5: 8347a98eacc812be99a9abc49827ca1f
+      size: 345389
+    - path: data/AMZN.csv
+      hash: md5
+      md5: 0a9d3a1f97cc6e900e2ccd60b887f697
+      size: 482293
+    - path: data/AMZN_tech.csv
+      hash: md5
+      md5: 2918367c50f939ed08c9858748b8c0f6
+      size: 345919
+    - path: data/GOOG.csv
+      hash: md5
+      md5: b51aed29f57a8b301fb049a816d006a1
+      size: 483327
+    - path: data/GOOG_tech.csv
+      hash: md5
+      md5: 4ac3486fc88c3d2445db8412bb48b916
+      size: 345294
+    - path: data/META.csv
+      hash: md5
+      md5: cccd47a5a21a76459c71c9146d3311d3
+      size: 476259
+    - path: data/META_tech.csv
+      hash: md5
+      md5: a131108cb85135d6fee18b08c54e727f
+      size: 341909
+    - path: data/MSFT.csv
+      hash: md5
+      md5: 68d6939841f14c4f72dcf0d4dd1ec419
+      size: 477453
+    - path: data/MSFT_tech.csv
+      hash: md5
+      md5: de7653e1e4dbcd3d2b43e32c6e6072de
+      size: 342300
+    - path: data/^GSPC.csv
+      hash: md5
+      md5: 9ad02046f973c3e638262b7a36de580b
+      size: 471828
+    - path: data/^GSPC_tech.csv
+      hash: md5
+      md5: 7fdfbf401ecf15ce409d6bb073516385
+      size: 342541
+    outs:
+    - path: models/AAPL_LSTM_model.h5
+      hash: md5
+      md5: 8449bfcba727c1660779a282bf98598e
+      size: 2461672
+    - path: models/AMZN_LSTM_model.h5
+      hash: md5
+      md5: a290cc06a3cbc0fa37f47dd2cf464d88
+      size: 2461376
+    - path: models/GOOG_LSTM_model.h5
+      hash: md5
+      md5: 9c06bbde6f3a75ad4eac8a1fe385663e
+      size: 2461376
+    - path: models/META_LSTM_model.h5
+      hash: md5
+      md5: db6c6ad7a4403bbca45be0ce389595b1
+      size: 2461376
+    - path: models/MSFT_LSTM_model.h5
+      hash: md5
+      md5: f203dc654c0fdd8a301250157494289f
+      size: 2461376
+    - path: models/^GSPC_LSTM_model.h5
+      hash: md5
+      md5: 667cb3cf8e274c90c5d2fdacd3fd42ad
+      size: 2461440
+    - path: models/results_lstm.csv
+      hash: md5
+      md5: 1c184f2fe8c303b681e52f1d8dd2e1b4
+      size: 430
