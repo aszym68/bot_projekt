@@ -222,25 +222,24 @@ class Advisor(QWidget):
 
 
 def main():
-    # with open(
-    #     utils.get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "r"
-    # ) as config_file:
-    #     try:
-    #         config = json.load(config_file)
-    #         update_date = config.get("last_download")
-    #     except json.JSONDecodeError:
-    #         print("Error reading config.json, cannot read last update date.")
-    #         update_date = "unknown"
-    # res = mb.askquestion(
-    #     "Redownload data",
-    #     f"Do you want to update the index with current data? Last update date: {update_date}",
-    # )
-    # if res == "yes":
-    #     download.main()
-    #     gui()
-    # else:
-    #     gui()
-    gui()
+    with open(
+        utils.get_repo_path() / cfg.CFG_FOLDER / cfg.CFG_JSON, "r"
+    ) as config_file:
+        try:
+            config = json.load(config_file)
+            update_date = config.get("last_download")
+        except json.JSONDecodeError:
+            print("Error reading config.json, cannot read last update date.")
+            update_date = "unknown"
+    res = mb.askquestion(
+        "Redownload data",
+        f"Do you want to update the index with current data? Last update date: {update_date}",
+    )
+    if res == "yes":
+        download.main()
+        gui()
+    else:
+        gui()
 
 
 def gui():
